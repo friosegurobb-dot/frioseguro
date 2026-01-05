@@ -12,6 +12,10 @@
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\drawable\\bg_status_offline.xml"
     },
     {
+        "merged": "com.parametican.alertarift.app-merged_res-31:/layout_activity_mode_select.xml.flat",
+        "source": "com.parametican.alertarift.app-main-33:/layout/activity_mode_select.xml"
+    },
+    {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_activity_mode_select.xml.flat",
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\activity_mode_select.xml"
     },
@@ -36,8 +40,8 @@
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\dialog_config.xml"
     },
     {
-        "merged": "com.parametican.alertarift.app-merged_res-31:/layout_item_reefer.xml.flat",
-        "source": "com.parametican.alertarift.app-main-33:/layout/item_reefer.xml"
+        "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_item_reefer.xml.flat",
+        "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\item_reefer.xml"
     },
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\mipmap-hdpi_ic_launcher.xml.flat",

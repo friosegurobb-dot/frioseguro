@@ -3090,6 +3090,7 @@ id btnConfig
 id btnConfigTelegram
 id btnConfigWhatsApp
 id btnConnect
+id btnConnectManual
 id btnDefrost
 id btnLogout
 id btnModeInternet
@@ -3123,10 +3124,12 @@ id clockwise
 id collapseActionView
 id compress
 id confirm_button
+id connectionCard
 id container
 id content
 id contentPanel
 id contiguous
+id controlButtons
 id coordinator
 id cos
 id counterclockwise
@@ -3172,6 +3175,7 @@ id endToStart
 id enterAlways
 id enterAlwaysCollapsed
 id etAlertDelay
+id etManualIp
 id etServerIp
 id etTelegramChatId
 id etTempCritical
@@ -3235,6 +3239,7 @@ id linear
 id listMode
 id list_item
 id m3_side_sheet
+id manualIpContainer
 id marquee
 id masked
 id match_parent
@@ -3474,6 +3479,7 @@ id tvRiftId
 id tvRiftName
 id tvRiftStatus
 id tvRiftTemp
+id tvShowManualIp
 id tvStatus
 id tvSubtitle
 id tvTemp1

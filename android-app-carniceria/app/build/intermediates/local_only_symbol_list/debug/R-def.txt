@@ -15,6 +15,7 @@ id btnConfig
 id btnConfigTelegram
 id btnConfigWhatsApp
 id btnConnect
+id btnConnectManual
 id btnDefrost
 id btnLogout
 id btnModeInternet
@@ -28,13 +29,17 @@ id btnStarlinkInfo
 id btnStart
 id btnStop
 id cardLogin
+id connectionCard
+id controlButtons
 id etAlertDelay
+id etManualIp
 id etServerIp
 id etTelegramChatId
 id etTempCritical
 id etTempMax
 id ivLogo
 id layoutLocalConfig
+id manualIpContainer
 id reefersContainer
 id simBadge
 id statusIndicator
@@ -55,6 +60,7 @@ id tvRiftId
 id tvRiftName
 id tvRiftStatus
 id tvRiftTemp
+id tvShowManualIp
 id tvStatus
 id tvSubtitle
 id tvTemp1
