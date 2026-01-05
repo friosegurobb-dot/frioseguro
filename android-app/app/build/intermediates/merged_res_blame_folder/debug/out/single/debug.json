@@ -12,12 +12,24 @@
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\drawable\\bg_status_offline.xml"
     },
     {
+        "merged": "com.parametican.alertarift.app-merged_res-31:/layout_activity_alert.xml.flat",
+        "source": "com.parametican.alertarift.app-main-33:/layout/activity_alert.xml"
+    },
+    {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_activity_mode_select.xml.flat",
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\activity_mode_select.xml"
     },
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\drawable_bg_card.xml.flat",
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\drawable\\bg_card.xml"
+    },
+    {
+        "merged": "com.parametican.alertarift.app-merged_res-31:/layout_activity_login.xml.flat",
+        "source": "com.parametican.alertarift.app-main-33:/layout/activity_login.xml"
+    },
+    {
+        "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_dialog_sensor_config.xml.flat",
+        "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\dialog_sensor_config.xml"
     },
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_activity_alert.xml.flat",
@@ -30,10 +42,6 @@
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_dialog_config.xml.flat",
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\dialog_config.xml"
-    },
-    {
-        "merged": "com.parametican.alertarift.app-merged_res-31:/layout_dialog_sensor_config.xml.flat",
-        "source": "com.parametican.alertarift.app-main-33:/layout/dialog_sensor_config.xml"
     },
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_item_reefer.xml.flat",
@@ -70,6 +78,10 @@
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_activity_splash.xml.flat",
         "source": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-main-33:\\layout\\activity_splash.xml"
+    },
+    {
+        "merged": "com.parametican.alertarift.app-merged_res-31:/layout_activity_splash.xml.flat",
+        "source": "com.parametican.alertarift.app-main-33:/layout/activity_splash.xml"
     },
     {
         "merged": "C:\\Users\\alegr\\.gradle\\daemon\\8.2\\com.parametican.alertarift.app-merged_res-31:\\layout_dialog_telegram.xml.flat",

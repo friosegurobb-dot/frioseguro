@@ -120,7 +120,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="💡 Usa rift.local o la IP del dispositivo"
+                android:text="💡 Usa reefer.local o la IP del dispositivo"
                 android:textColor="#64748b"
                 android:textSize="12sp" />
 

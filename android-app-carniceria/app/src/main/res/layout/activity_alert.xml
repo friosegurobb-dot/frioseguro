@@ -43,7 +43,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="REVISAR RIFT INMEDIATAMENTE"
+        android:text="REVISAR REEFER INMEDIATAMENTE"
         android:textSize="18sp"
         android:textColor="#FFCCCC"
         android:gravity="center"

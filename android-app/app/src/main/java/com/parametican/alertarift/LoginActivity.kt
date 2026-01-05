@@ -74,7 +74,7 @@ class LoginActivity : AppCompatActivity() {
                 tvStatus.text = "🌐 Conectando a la nube..."
                 testInternetConnection(tvStatus)
             } else {
-                tvStatus.text = "🔍 Buscando RIFT en la red..."
+                tvStatus.text = "🔍 Buscando Reefer en la red..."
                 tryAutoConnect(etServerIp, tvStatus)
             }
         }
@@ -99,7 +99,7 @@ class LoginActivity : AppCompatActivity() {
     
     private fun tryAutoConnect(etServerIp: EditText, tvStatus: TextView) {
         val addresses = listOf(
-            "rift.local",
+            "reefer.local",
             "192.168.0.11:3000",
             "192.168.1.100",
             "192.168.0.100",
