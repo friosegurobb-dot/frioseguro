@@ -320,8 +320,8 @@ class MainActivity : AppCompatActivity() {
                 val supabaseUrl = ModeSelectActivity.SUPABASE_URL
                 val supabaseKey = ModeSelectActivity.SUPABASE_KEY
                 
-                // Primero obtener dispositivos
-                val devicesUrl = URL("$supabaseUrl/rest/v1/devices?org_slug=eq.$orgSlug&select=*")
+                // Obtener SOLO el Reefer Principal (REEFER-01)
+                val devicesUrl = URL("$supabaseUrl/rest/v1/devices?device_id=eq.REEFER-01&select=*")
                 val devConn = devicesUrl.openConnection() as HttpURLConnection
                 devConn.connectTimeout = 10000
                 devConn.setRequestProperty("apikey", supabaseKey)
@@ -333,8 +333,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 devConn.disconnect()
                 
-                // Luego obtener últimas lecturas
-                val readingsUrl = URL("$supabaseUrl/rest/v1/readings?select=device_id,temp_avg,temp1,temp2,door_open,siren_on,alert_active,created_at&order=created_at.desc&limit=20")
+                // Obtener últimas lecturas del REEFER-01
+                val readingsUrl = URL("$supabaseUrl/rest/v1/readings?device_id=eq.REEFER-01&select=device_id,temp_avg,temp1,temp2,door_open,siren_on,alert_active,created_at&order=created_at.desc&limit=1")
                 val readConn = readingsUrl.openConnection() as HttpURLConnection
                 readConn.connectTimeout = 10000
                 readConn.setRequestProperty("apikey", supabaseKey)
@@ -709,16 +709,14 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showSettingsMenu() {
-        val options = arrayOf("⚙️ Configurar Sensores", "🧪 Modo Simulación", "📱 Probar Telegram", "🔄 Reconectar", "🚪 Cerrar sesión")
+        val options = arrayOf("📱 Probar Telegram", "🔄 Reconectar", "🚪 Cerrar sesión")
         AlertDialog.Builder(this, R.style.Theme_AlertaRift_Dialog)
             .setTitle("⚙️ Opciones")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> showSensorConfigDialog()
-                    1 -> showSimulationDialog()
-                    2 -> testTelegram()
-                    3 -> reconnect()
-                    4 -> logout()
+                    0 -> testTelegram()
+                    1 -> reconnect()
+                    2 -> logout()
                 }
             }
             .show()

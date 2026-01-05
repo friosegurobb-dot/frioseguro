@@ -402,9 +402,6 @@
         <h1>Frio<span>Seguro</span></h1>
       </div>
       <div style="display:flex;gap:12px;align-items:center;">
-        <select id="orgSelector" onchange="changeOrg()" style="padding:8px 16px;border-radius:10px;background:#1e293b;color:white;border:1px solid #334155;font-size:14px;">
-          <option value="">Todas las organizaciones</option>
-        </select>
         <div class="connection-status">
           <div class="status-dot" id="connectionDot"></div>
           <span id="connectionText">Conectando...</span>
@@ -505,17 +502,14 @@
       loadDevices();
     }
     
-    // Cargar dispositivos
+    // Cargar dispositivos - SOLO Reefer Principal (REEFER-01)
     async function loadDevices() {
       try {
-        // Obtener dispositivos con su última lectura
-        let query = supabaseClient.from('devices').select('*');
-        
-        if (selectedOrg) {
-          query = query.eq('org_slug', selectedOrg);
-        }
-        
-        const { data: deviceData, error: deviceError } = await query.order('name');
+        // Obtener SOLO el Reefer Principal
+        const { data: deviceData, error: deviceError } = await supabaseClient
+          .from('devices')
+          .select('*')
+          .eq('device_id', 'REEFER-01');
         
         if (deviceError) throw deviceError;
         
