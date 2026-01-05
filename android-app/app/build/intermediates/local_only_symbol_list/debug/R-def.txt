@@ -43,6 +43,11 @@ id manualIpContainer
 id reefersContainer
 id simBadge
 id statusIndicator
+id switchDoorSensor
+id switchSensor1
+id switchSensor2
+id switchSensor3
+id switchSimulation
 id tvAlertMessage
 id tvConnectionStatus
 id tvDoorIcon
@@ -75,6 +80,7 @@ layout activity_main
 layout activity_mode_select
 layout activity_splash
 layout dialog_config
+layout dialog_sensor_config
 layout dialog_telegram
 layout item_reefer
 layout item_rift

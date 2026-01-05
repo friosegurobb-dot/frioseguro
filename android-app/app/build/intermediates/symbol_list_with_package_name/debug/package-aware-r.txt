@@ -3416,6 +3416,11 @@ id stop
 id stretch
 id submenuarrow
 id submit_area
+id switchDoorSensor
+id switchSensor1
+id switchSensor2
+id switchSensor3
+id switchSimulation
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
@@ -3641,6 +3646,7 @@ layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout dialog_config
+layout dialog_sensor_config
 layout dialog_telegram
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity

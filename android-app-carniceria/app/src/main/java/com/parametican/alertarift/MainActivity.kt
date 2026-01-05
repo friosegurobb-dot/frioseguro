@@ -132,17 +132,163 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("frioseguro", MODE_PRIVATE)
         val mode = prefs.getString("connection_mode", "local")
         
+        // SIEMPRE ocultar campo IP y botones - conexión automática
+        connectionCard.visibility = View.GONE
+        controlButtons.visibility = View.GONE
+        
         if (mode == "internet") {
-            // Modo Internet: ocultar campo IP y botones de inicio/detener
-            connectionCard.visibility = View.GONE
-            controlButtons.visibility = View.GONE
-            
-            // Iniciar monitoreo automáticamente desde Supabase
+            // Modo Internet: conectar a Supabase
             startInternetMonitoring()
         } else {
-            // Modo Local: mostrar todo
-            connectionCard.visibility = View.VISIBLE
-            controlButtons.visibility = View.VISIBLE
+            // Modo Local: conectar automáticamente al ESP32 via NSD
+            startLocalMonitoring()
+        }
+    }
+    
+    private fun startLocalMonitoring() {
+        val prefs = getSharedPreferences("frioseguro", MODE_PRIVATE)
+        val savedIp = prefs.getString("server_ip", null)
+        
+        tvConnectionStatus.text = "📡 Conectando..."
+        tvConnectionStatus.setTextColor(Color.parseColor("#f59e0b"))
+        
+        if (savedIp != null) {
+            // Usar IP guardada del ModeSelectActivity
+            connectToLocalDevice(savedIp)
+        } else {
+            // Buscar con NSD
+            discoverLocalDevice()
+        }
+    }
+    
+    private fun connectToLocalDevice(ip: String) {
+        thread {
+            try {
+                val url = URL("http://$ip/api/status")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
+                val code = conn.responseCode
+                
+                if (code == 200) {
+                    val response = conn.inputStream.bufferedReader().readText()
+                    conn.disconnect()
+                    
+                    runOnUiThread {
+                        tvConnectionStatus.text = "🟢 Conectado a $ip"
+                        tvConnectionStatus.setTextColor(Color.parseColor("#22c55e"))
+                        parseLocalResponse(response)
+                    }
+                    
+                    // Iniciar polling cada 3 segundos
+                    startLocalPolling(ip)
+                } else {
+                    conn.disconnect()
+                    runOnUiThread {
+                        tvConnectionStatus.text = "⚠️ ESP32 no responde"
+                        tvConnectionStatus.setTextColor(Color.parseColor("#ef4444"))
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    tvConnectionStatus.text = "❌ Error: ${e.message}"
+                    tvConnectionStatus.setTextColor(Color.parseColor("#ef4444"))
+                }
+            }
+        }
+    }
+    
+    private fun startLocalPolling(ip: String) {
+        updateRunnable = object : Runnable {
+            override fun run() {
+                fetchFromLocal(ip)
+                handler.postDelayed(this, 3000)
+            }
+        }
+        handler.post(updateRunnable!!)
+    }
+    
+    private fun fetchFromLocal(ip: String) {
+        thread {
+            try {
+                val url = URL("http://$ip/api/status")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 3000
+                conn.readTimeout = 3000
+                
+                if (conn.responseCode == 200) {
+                    val response = conn.inputStream.bufferedReader().readText()
+                    runOnUiThread {
+                        parseLocalResponse(response)
+                        tvLastUpdate.text = "Última actualización: ${java.text.SimpleDateFormat("HH:mm:ss").format(java.util.Date())}"
+                    }
+                }
+                conn.disconnect()
+            } catch (e: Exception) {
+                // Silently fail, will retry
+            }
+        }
+    }
+    
+    private fun parseLocalResponse(json: String) {
+        try {
+            val obj = org.json.JSONObject(json)
+            
+            val temp = obj.optDouble("temp_avg", -999.0).toFloat()
+            val temp1 = obj.optDouble("temp1", -999.0).toFloat()
+            val temp2 = obj.optDouble("temp2", -999.0).toFloat()
+            val doorOpen = obj.optBoolean("door_open", false)
+            val relayOn = obj.optBoolean("siren_on", false)
+            val alertActive = obj.optBoolean("alert_active", false)
+            val alertMsg = obj.optString("alert_message", "")
+            val uptime = obj.optInt("uptime", 0)
+            val rssi = obj.optInt("rssi", 0)
+            val internet = obj.optBoolean("internet", false)
+            val location = obj.optString("location", "")
+            val simulation = obj.optBoolean("simulation", false)
+            
+            updateDisplay(temp, temp1, temp2, doorOpen, relayOn, alertActive, alertMsg, uptime, rssi, internet, location)
+            
+            // Mostrar badge de simulación si está activo
+            simBadge.visibility = if (simulation) View.VISIBLE else View.GONE
+        } catch (e: Exception) {
+            // Ignore parse errors
+        }
+    }
+    
+    private fun discoverLocalDevice() {
+        // Fallback: intentar IPs comunes
+        val addresses = listOf("reefer.local", "192.168.4.1", "192.168.1.100", "192.168.0.100")
+        
+        thread {
+            for (addr in addresses) {
+                try {
+                    val url = URL("http://$addr/api/status")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 2000
+                    conn.readTimeout = 2000
+                    
+                    if (conn.responseCode == 200) {
+                        conn.disconnect()
+                        
+                        // Guardar IP encontrada
+                        getSharedPreferences("frioseguro", MODE_PRIVATE).edit()
+                            .putString("server_ip", addr)
+                            .apply()
+                        
+                        runOnUiThread {
+                            connectToLocalDevice(addr)
+                        }
+                        return@thread
+                    }
+                    conn.disconnect()
+                } catch (e: Exception) { }
+            }
+            
+            runOnUiThread {
+                tvConnectionStatus.text = "❌ No se encontró ESP32"
+                tvConnectionStatus.setTextColor(Color.parseColor("#ef4444"))
+            }
         }
     }
     
@@ -511,21 +657,183 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showSettingsMenu() {
-        val options = arrayOf("🔄 Cambiar servidor", "🧪 Modo simulación", "📱 Probar Telegram", "🚪 Cerrar sesión")
+        val options = arrayOf("⚙️ Configurar Sensores", "🧪 Modo Simulación", "📱 Probar Telegram", "🔄 Reconectar", "🚪 Cerrar sesión")
         AlertDialog.Builder(this, R.style.Theme_AlertaRift_Dialog)
             .setTitle("⚙️ Opciones")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> {
-                        // Ya se puede editar la IP
-                        etServerIp.requestFocus()
-                    }
-                    1 -> toggleSimulation()
+                    0 -> showSensorConfigDialog()
+                    1 -> showSimulationDialog()
                     2 -> testTelegram()
-                    3 -> logout()
+                    3 -> reconnect()
+                    4 -> logout()
                 }
             }
             .show()
+    }
+    
+    private fun reconnect() {
+        handler.removeCallbacksAndMessages(null)
+        updateRunnable = null
+        
+        val prefs = getSharedPreferences("frioseguro", MODE_PRIVATE)
+        prefs.edit().remove("server_ip").apply()
+        
+        tvConnectionStatus.text = "🔄 Reconectando..."
+        tvConnectionStatus.setTextColor(Color.parseColor("#f59e0b"))
+        
+        setupConnectionMode()
+    }
+    
+    private fun showSensorConfigDialog() {
+        val prefs = getSharedPreferences("frioseguro", MODE_PRIVATE)
+        val ip = prefs.getString("server_ip", null)
+        
+        if (ip == null) {
+            Toast.makeText(this, "❌ No hay conexión con ESP32", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val dialogView = layoutInflater.inflate(R.layout.dialog_sensor_config, null)
+        
+        // Cargar configuración actual del ESP32
+        thread {
+            try {
+                val url = URL("http://$ip/api/config")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 5000
+                val response = conn.inputStream.bufferedReader().readText()
+                conn.disconnect()
+                
+                val json = org.json.JSONObject(response)
+                runOnUiThread {
+                    dialogView.findViewById<Switch>(R.id.switchSensor1)?.isChecked = json.optBoolean("sensor1_enabled", true)
+                    dialogView.findViewById<Switch>(R.id.switchSensor2)?.isChecked = json.optBoolean("sensor2_enabled", false)
+                    dialogView.findViewById<Switch>(R.id.switchSensor3)?.isChecked = json.optBoolean("sensor3_enabled", false)
+                    dialogView.findViewById<Switch>(R.id.switchDoorSensor)?.isChecked = json.optBoolean("door_sensor_enabled", false)
+                    dialogView.findViewById<Switch>(R.id.switchSimulation)?.isChecked = json.optBoolean("simulation", false)
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "⚠️ No se pudo cargar config", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
+        AlertDialog.Builder(this, R.style.Theme_AlertaRift_Dialog)
+            .setTitle("⚙️ Configurar Sensores")
+            .setView(dialogView)
+            .setPositiveButton("Guardar") { _, _ ->
+                saveSensorConfig(dialogView, ip)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+    
+    private fun saveSensorConfig(view: View, ip: String) {
+        val sensor1 = view.findViewById<Switch>(R.id.switchSensor1)?.isChecked ?: true
+        val sensor2 = view.findViewById<Switch>(R.id.switchSensor2)?.isChecked ?: false
+        val sensor3 = view.findViewById<Switch>(R.id.switchSensor3)?.isChecked ?: false
+        val doorSensor = view.findViewById<Switch>(R.id.switchDoorSensor)?.isChecked ?: false
+        val simulation = view.findViewById<Switch>(R.id.switchSimulation)?.isChecked ?: false
+        
+        thread {
+            try {
+                val url = URL("http://$ip/api/config")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                conn.connectTimeout = 5000
+                
+                val payload = """{
+                    "sensor1_enabled": $sensor1,
+                    "sensor2_enabled": $sensor2,
+                    "sensor3_enabled": $sensor3,
+                    "door_sensor_enabled": $doorSensor,
+                    "simulation": $simulation
+                }"""
+                
+                conn.outputStream.write(payload.toByteArray())
+                val code = conn.responseCode
+                conn.disconnect()
+                
+                runOnUiThread {
+                    if (code == 200) {
+                        Toast.makeText(this, "✅ Configuración guardada", Toast.LENGTH_SHORT).show()
+                        simBadge.visibility = if (simulation) View.VISIBLE else View.GONE
+                    } else {
+                        Toast.makeText(this, "❌ Error al guardar", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "❌ Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    private fun showSimulationDialog() {
+        val prefs = getSharedPreferences("frioseguro", MODE_PRIVATE)
+        val ip = prefs.getString("server_ip", null)
+        
+        if (ip == null) {
+            Toast.makeText(this, "❌ No hay conexión con ESP32", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val options = arrayOf(
+            "🟢 Activar simulación (-22°C normal)",
+            "🟡 Simular alerta de temperatura (-5°C)",
+            "🔴 Simular temperatura crítica (0°C)",
+            "🚪 Simular puerta abierta",
+            "⏹️ Desactivar simulación"
+        )
+        
+        AlertDialog.Builder(this, R.style.Theme_AlertaRift_Dialog)
+            .setTitle("🧪 Modo Simulación")
+            .setItems(options) { _, which ->
+                val payload = when (which) {
+                    0 -> """{"simulation":true,"sim_temp":-22.0}"""
+                    1 -> """{"simulation":true,"sim_temp":-5.0}"""
+                    2 -> """{"simulation":true,"sim_temp":0.0}"""
+                    3 -> """{"simulation":true,"sim_door_open":true}"""
+                    4 -> """{"simulation":false}"""
+                    else -> return@setItems
+                }
+                sendSimulationCommand(ip, payload, which != 4)
+            }
+            .show()
+    }
+    
+    private fun sendSimulationCommand(ip: String, payload: String, enableSim: Boolean) {
+        thread {
+            try {
+                val url = URL("http://$ip/api/simulation")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                conn.connectTimeout = 5000
+                conn.outputStream.write(payload.toByteArray())
+                val code = conn.responseCode
+                conn.disconnect()
+                
+                runOnUiThread {
+                    if (code == 200) {
+                        simBadge.visibility = if (enableSim) View.VISIBLE else View.GONE
+                        Toast.makeText(this, if (enableSim) "🧪 Simulación activada" else "⏹️ Simulación desactivada", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "❌ Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "❌ Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
     
     private fun toggleSimulation() {

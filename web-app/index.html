@@ -9,7 +9,7 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="FrioSeguro">
   
@@ -458,7 +458,7 @@
     const SUPABASE_URL = 'https://xhdeacnwdzvkivfjzard.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_JhTUv1X2LHMBVILUaysJ3g_Ho11zu-Q';
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
     let devices = [];
     let organizations = [];
@@ -483,7 +483,7 @@
     // Cargar organizaciones
     async function loadOrganizations() {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('organizations')
           .select('*')
           .order('name');
@@ -509,7 +509,7 @@
     async function loadDevices() {
       try {
         // Obtener dispositivos con su última lectura
-        let query = supabase.from('devices').select('*');
+        let query = supabaseClient.from('devices').select('*');
         
         if (selectedOrg) {
           query = query.eq('org_slug', selectedOrg);
@@ -522,7 +522,7 @@
         // Para cada dispositivo, obtener última lectura
         const devicesWithReadings = await Promise.all(
           (deviceData || []).map(async (device) => {
-            const { data: readings } = await supabase
+            const { data: readings } = await supabaseClient
               .from('readings')
               .select('*')
               .eq('device_id', device.device_id)
@@ -710,7 +710,7 @@
     // Funciones de control
     async function stopAlert(deviceId) {
       try {
-        await supabase.from('commands').insert({
+        await supabaseClient.from('commands').insert({
           device_id: deviceId,
           command: 'stop_alert',
           payload: {}
