@@ -1,0 +1,7 @@
+[build]
+  publish = "web-app"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
