@@ -118,6 +118,8 @@ int offlineQueueIndex = 0;
 // Contador de conexiones de apps (para LED azul)
 unsigned long lastAppConnection = 0;
 bool appConnected = false;
+int androidConnections = 0;  // Contador de conexiones Android activas
+unsigned long lastAndroidPing = 0;
 
 // ============================================
 // SETUP
@@ -517,7 +519,8 @@ void checkAlerts() {
   } else {
     // Temperatura normal
     state.highTempStartTime = 0;
-    if (state.alertActive) {
+    // Solo auto-desactivar si NO es una alerta manual
+    if (state.alertActive && !manualAlert) {
       clearAlert();
     }
   }
@@ -525,6 +528,8 @@ void checkAlerts() {
 
 // Variable para trackear si ya se envió alerta a Telegram en esta sesión de alerta
 bool telegramAlertSent = false;
+// Variable para alertas manuales (no se auto-desactivan)
+bool manualAlert = false;
 
 void triggerAlert(String message, bool critical) {
   // Si ya hay una alerta activa, no hacer nada (evita spam)
@@ -572,6 +577,7 @@ void acknowledgeAlert() {
   state.alertMessage = "";
   state.highTempStartTime = 0;
   telegramAlertSent = false;  // Resetear para permitir nueva alerta en el futuro
+  manualAlert = false;  // Resetear flag de alerta manual
   
   // Apagar relay y buzzer
   setRelay(false);
@@ -880,6 +886,8 @@ void setupWebServer() {
   server.on("/api/simulation", HTTP_POST, handleApiSimulation);
   server.on("/api/door/toggle", HTTP_POST, handleApiToggleDoor);
   server.on("/api/wifi/reset", HTTP_POST, handleApiWifiReset);
+  server.on("/api/ping", HTTP_POST, handleApiPing);
+  server.on("/api/ping", HTTP_GET, handleApiPing);
   server.onNotFound(handleNotFound);
   
   Serial.println("[OK] Web server configurado");
@@ -926,6 +934,8 @@ void handleApiStatus() {
   sys["door_enabled"] = config.doorEnabled;
   sys["sensor1_enabled"] = config.sensor1Enabled;
   sys["sensor2_enabled"] = config.sensor2Enabled;
+  sys["android_connections"] = androidConnections;
+  sys["last_android_ping"] = lastAndroidPing > 0 ? (millis() - lastAndroidPing) / 1000 : -1;
   
   // Device info
   JsonObject device = doc.createNestedObject("device");
@@ -1050,6 +1060,7 @@ void handleApiAckAlert() {
 }
 
 void handleApiTestAlert() {
+  manualAlert = true;  // Marcar como alerta manual para que no se auto-desactive
   triggerAlert("🔔 ALERTA DE PRUEBA - Sistema funcionando correctamente", true);
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", "{\"success\":true}");
@@ -1114,6 +1125,17 @@ void handleApiWifiReset() {
   ESP.restart();
 }
 
+void handleApiPing() {
+  // Registrar conexión de app Android
+  androidConnections++;
+  lastAndroidPing = millis();
+  appConnected = true;
+  lastAppConnection = millis();
+  
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "application/json", "{\"success\":true,\"android_connections\":" + String(androidConnections) + "}");
+}
+
 void handleNotFound() {
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -1136,7 +1158,7 @@ String getEmbeddedHTML() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RIFT Monitor Pro</title>
+  <title>Reefer Monitor Pro</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);min-height:100vh;color:#fff;padding:16px}
@@ -1202,7 +1224,7 @@ String getEmbeddedHTML() {
 </head>
 <body>
   <div class="container">
-    <h1>❄️ RIFT <span>Monitor Pro</span></h1>
+    <h1>❄️ Reefer <span>Monitor Pro</span></h1>
     <p class="subtitle">Campamento Parametican Silver</p>
     
     <div class="alert-banner" id="alertBanner">
@@ -1324,11 +1346,25 @@ String getEmbeddedHTML() {
     </div>
     
     <div class="card">
+      <h2>📱 Apps Android Conectadas</h2>
+      <div class="status-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="status-item">
+          <div class="label">Conexiones Totales</div>
+          <div class="value" id="androidCount" style="color:#22c55e">0</div>
+        </div>
+        <div class="status-item">
+          <div class="label">Último Ping</div>
+          <div class="value" id="lastPing" style="font-size:1em">--</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
       <h2>ℹ️ Información del Dispositivo</h2>
       <div class="info-box">
-        <p><strong>ID:</strong> <code id="deviceId">RIFT-01</code></p>
+        <p><strong>ID:</strong> <code id="deviceId">REEFER-01</code></p>
         <p style="margin-top:8px"><strong>IP:</strong> <code id="deviceIp">--</code></p>
-        <p style="margin-top:8px"><strong>mDNS:</strong> <code id="deviceMdns">rift.local</code></p>
+        <p style="margin-top:8px"><strong>mDNS:</strong> <code id="deviceMdns">reefer.local</code></p>
         <p style="margin-top:8px"><strong>WiFi:</strong> <span id="wifiRssi">--</span> dBm</p>
         <p style="margin-top:8px"><strong>Internet:</strong> <span id="internetStatus">--</span></p>
       </div>
@@ -1395,6 +1431,11 @@ String getEmbeddedHTML() {
         document.getElementById('internetStatus').textContent=d.system.internet?'✓ Online':'✗ Offline';
         document.getElementById('internetStatus').style.color=d.system.internet?'#22c55e':'#ef4444';
         document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString();
+        
+        // Android connections
+        document.getElementById('androidCount').textContent=d.system.android_connections||0;
+        const lastPing=d.system.last_android_ping;
+        document.getElementById('lastPing').textContent=lastPing>=0?formatUptime(lastPing)+' atrás':'Sin conexiones';
         
         const banner=document.getElementById('alertBanner');
         if(alertActive){banner.classList.add('active');document.getElementById('alertMsg').textContent=d.system.alert_message||'Alerta activa';}

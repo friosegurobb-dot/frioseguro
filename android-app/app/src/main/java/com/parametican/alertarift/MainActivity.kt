@@ -212,6 +212,17 @@ class MainActivity : AppCompatActivity() {
     private fun fetchFromLocal(ip: String) {
         thread {
             try {
+                // Hacer ping para registrar conexión Android
+                try {
+                    val pingUrl = URL("http://$ip/api/ping")
+                    val pingConn = pingUrl.openConnection() as HttpURLConnection
+                    pingConn.connectTimeout = 1000
+                    pingConn.requestMethod = "POST"
+                    pingConn.responseCode // trigger request
+                    pingConn.disconnect()
+                } catch (e: Exception) { }
+                
+                // Obtener status
                 val url = URL("http://$ip/api/status")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.connectTimeout = 3000
@@ -235,20 +246,25 @@ class MainActivity : AppCompatActivity() {
         try {
             val obj = org.json.JSONObject(json)
             
-            val temp = obj.optDouble("temp_avg", -999.0).toFloat()
-            val temp1 = obj.optDouble("temp1", -999.0).toFloat()
-            val temp2 = obj.optDouble("temp2", -999.0).toFloat()
-            val doorOpen = obj.optBoolean("door_open", false)
-            val relayOn = obj.optBoolean("siren_on", false)
-            val alertActive = obj.optBoolean("alert_active", false)
-            val alertMsg = obj.optString("alert_message", "")
-            val uptime = obj.optInt("uptime", 0)
-            val rssi = obj.optInt("rssi", 0)
-            val internet = obj.optBoolean("internet", false)
-            val location = obj.optString("location", "")
-            val simulation = obj.optBoolean("simulation", false)
+            // El ESP32 devuelve: { sensor: {...}, system: {...}, device: {...}, location: {...} }
+            val sensor = obj.optJSONObject("sensor")
+            val system = obj.optJSONObject("system")
+            val location = obj.optJSONObject("location")
             
-            updateDisplay(temp, temp1, temp2, doorOpen, relayOn, alertActive, alertMsg, uptime, rssi, internet, location)
+            val temp = sensor?.optDouble("temp_avg", -999.0)?.toFloat() ?: -999f
+            val temp1 = sensor?.optDouble("temp1", -999.0)?.toFloat() ?: -999f
+            val temp2 = sensor?.optDouble("temp2", -999.0)?.toFloat() ?: -999f
+            val doorOpen = sensor?.optBoolean("door_open", false) ?: false
+            val relayOn = system?.optBoolean("relay_on", false) ?: false
+            val alertActive = system?.optBoolean("alert_active", false) ?: false
+            val alertMsg = system?.optString("alert_message", "") ?: ""
+            val uptime = system?.optInt("uptime_sec", 0) ?: 0
+            val rssi = system?.optInt("wifi_rssi", 0) ?: 0
+            val internet = system?.optBoolean("internet", false) ?: false
+            val locationName = location?.optString("detail", "") ?: ""
+            val simulation = system?.optBoolean("simulation_mode", false) ?: false
+            
+            updateDisplay(temp, temp1, temp2, doorOpen, relayOn, alertActive, alertMsg, uptime, rssi, internet, locationName)
             
             // Mostrar badge de simulación si está activo
             simBadge.visibility = if (simulation) View.VISIBLE else View.GONE
@@ -320,8 +336,8 @@ class MainActivity : AppCompatActivity() {
                 val supabaseUrl = ModeSelectActivity.SUPABASE_URL
                 val supabaseKey = ModeSelectActivity.SUPABASE_KEY
                 
-                // Obtener SOLO el Reefer Principal (REEFER-01)
-                val devicesUrl = URL("$supabaseUrl/rest/v1/devices?device_id=eq.REEFER-01&select=*")
+                // Obtener TODOS los dispositivos
+                val devicesUrl = URL("$supabaseUrl/rest/v1/devices?select=*&order=device_id")
                 val devConn = devicesUrl.openConnection() as HttpURLConnection
                 devConn.connectTimeout = 10000
                 devConn.setRequestProperty("apikey", supabaseKey)
@@ -333,8 +349,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 devConn.disconnect()
                 
-                // Obtener últimas lecturas del REEFER-01
-                val readingsUrl = URL("$supabaseUrl/rest/v1/readings?device_id=eq.REEFER-01&select=device_id,temp_avg,temp1,temp2,door_open,siren_on,alert_active,created_at&order=created_at.desc&limit=1")
+                // Obtener últimas lecturas de todos los dispositivos
+                val readingsUrl = URL("$supabaseUrl/rest/v1/readings?select=device_id,temp_avg,temp1,temp2,door_open,siren_on,alert_active,created_at&order=created_at.desc&limit=50")
                 val readConn = readingsUrl.openConnection() as HttpURLConnection
                 readConn.connectTimeout = 10000
                 readConn.setRequestProperty("apikey", supabaseKey)
