@@ -50,6 +50,7 @@ const int TELEGRAM_CHAT_COUNT = 1;  // Cantidad de chat IDs activos
 // ============================================
 #define SUPABASE_URL "https://xhdeacnwdzvkivfjzard.supabase.co"
 #define SUPABASE_ANON_KEY "sb_publishable_JhTUv1X2LHMBVILUaysJ3g_Ho11zu-Q"
+#define SUPABASE_SECRET_KEY "sb_secret_sEzxiZ5KZ008fB4XBXYQpg_FxARjoIf"
 #define SUPABASE_SYNC_INTERVAL_MS 5000  // Enviar datos cada 5 segundos
 
 // ============================================
