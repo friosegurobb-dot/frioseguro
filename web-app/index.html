@@ -587,6 +587,18 @@
             <div class="icon">📡</div>
             <h3>No hay dispositivos registrados</h3>
             <p>Los dispositivos aparecerán aquí cuando se conecten</p>
+            <div style="margin-top:20px;padding:20px;background:rgba(59,130,246,0.1);border-radius:12px;text-align:left;max-width:500px;margin-left:auto;margin-right:auto;">
+              <h4 style="color:#3b82f6;margin-bottom:12px;">📋 Checklist de conexión:</h4>
+              <p style="color:#94a3b8;font-size:14px;line-height:1.8;">
+                ✅ Supabase conectado<br>
+                ⏳ Esperando datos del ESP32...<br><br>
+                <strong>Para que el ESP32 envíe datos:</strong><br>
+                1. Conectá el ESP32 a WiFi (via portal 192.168.4.1)<br>
+                2. Verificá que tenga internet<br>
+                3. Los datos llegarán cada 5 segundos<br><br>
+                <strong>IP del ESP32:</strong> Revisá el Serial Monitor
+              </p>
+            </div>
           </div>
         `;
         return;

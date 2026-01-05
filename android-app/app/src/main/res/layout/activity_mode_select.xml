@@ -159,11 +159,58 @@
 
     </LinearLayout>
 
+    <!-- IP Manual (para modo local) -->
+    <LinearLayout
+        android:id="@+id/manualIpContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/etManualIp"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:hint="IP manual (ej: 192.168.1.50)"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#475569"
+            android:background="@drawable/bg_input"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textSize="14sp"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/btnConnectManual"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:text="Conectar"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#3b82f6"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvShowManualIp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="¿No lo encuentra? Ingresá la IP manualmente"
+        android:textColor="#3b82f6"
+        android:textSize="12sp"
+        android:clickable="true"
+        android:focusable="true" />
+
     <TextView
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:text=""
         android:textColor="#64748b"
         android:textSize="14sp"
@@ -172,7 +219,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="32dp"
         android:text="Campamento Parametican © 2026"
         android:textColor="#334155"
         android:textSize="12sp" />

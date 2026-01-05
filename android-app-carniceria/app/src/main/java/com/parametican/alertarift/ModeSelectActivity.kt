@@ -2,6 +2,7 @@ package com.parametican.alertarift
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.concurrent.thread
@@ -24,7 +25,7 @@ class ModeSelectActivity : AppCompatActivity() {
     }
     
     private var selectedMode = MODE_LOCAL
-    private var selectedOrg = "carniceria-demo"
+    private var selectedOrg = "parametican"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,16 +56,75 @@ class ModeSelectActivity : AppCompatActivity() {
             tvStatus.text = "🌐 Conectando a la nube..."
             connectInternet(tvStatus)
         }
+        
+        // IP Manual
+        val manualIpContainer = findViewById<LinearLayout>(R.id.manualIpContainer)
+        val etManualIp = findViewById<EditText>(R.id.etManualIp)
+        val btnConnectManual = findViewById<Button>(R.id.btnConnectManual)
+        val tvShowManualIp = findViewById<TextView>(R.id.tvShowManualIp)
+        
+        tvShowManualIp.setOnClickListener {
+            manualIpContainer.visibility = if (manualIpContainer.visibility == View.GONE) View.VISIBLE else View.GONE
+        }
+        
+        btnConnectManual.setOnClickListener {
+            val ip = etManualIp.text.toString().trim()
+            if (ip.isNotEmpty()) {
+                tvStatus.text = "📡 Conectando a $ip..."
+                connectToIp(ip, tvStatus)
+            }
+        }
+    }
+    
+    private fun connectToIp(ip: String, tvStatus: TextView) {
+        thread {
+            try {
+                val url = URL("http://$ip/api/status")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
+                val code = conn.responseCode
+                conn.disconnect()
+                
+                if (code == 200) {
+                    runOnUiThread {
+                        tvStatus.text = "✅ Reefer encontrado en $ip"
+                        
+                        getSharedPreferences("frioseguro", MODE_PRIVATE).edit()
+                            .putString("connection_mode", MODE_LOCAL)
+                            .putString("server_ip", ip)
+                            .putString("org_slug", selectedOrg)
+                            .putBoolean("mode_selected", true)
+                            .putBoolean("logged_in", true)
+                            .apply()
+                        
+                        tvStatus.postDelayed({ goToMain() }, 800)
+                    }
+                } else {
+                    runOnUiThread { tvStatus.text = "❌ No responde en $ip (código $code)" }
+                }
+            } catch (e: Exception) {
+                runOnUiThread { tvStatus.text = "❌ Error conectando a $ip: ${e.message}" }
+            }
+        }
     }
     
     private fun connectLocal(tvStatus: TextView) {
-        val addresses = listOf(
-            "reefer.local",
-            "rift.local",
-            "192.168.0.100",
-            "192.168.1.100",
-            "192.168.4.1"
-        )
+        // Buscar en todas las IPs comunes de redes locales
+        val addresses = mutableListOf<String>()
+        
+        // Primero mDNS
+        addresses.add("reefer.local")
+        
+        // Luego IPs comunes en diferentes subredes
+        for (subnet in listOf("192.168.0", "192.168.1", "192.168.2", "192.168.4", "10.0.0", "10.0.1")) {
+            for (host in listOf(1, 100, 101, 102, 50, 200)) {
+                addresses.add("$subnet.$host")
+            }
+        }
+        
+        // AP del ESP32
+        addresses.add("192.168.4.1")
         
         thread {
             for (addr in addresses) {
