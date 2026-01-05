@@ -1,9 +1,9 @@
 /*
- * CONFIGURACIÓN - Sistema Monitoreo RIFT
+ * CONFIGURACIÓN - Sistema Monitoreo Reefer
  * Campamento Parametican Silver
  * 
  * IMPORTANTE: El WiFi se configura automáticamente via WiFiManager
- * Si no hay WiFi configurado, el ESP32 crea un AP llamado "RIFT-Setup"
+ * Si no hay WiFi configurado, el ESP32 crea un AP llamado "Reefer-Setup"
  * Conectate a ese AP y entrá a 192.168.4.1 para configurar
  */
 
@@ -13,22 +13,22 @@
 // ============================================
 // WIFIMANAGER - Configuración del Access Point
 // ============================================
-#define AP_NAME "RIFT-Setup"           // Nombre del AP cuando no hay WiFi
-#define AP_PASSWORD "rift1234"         // Password del AP (mínimo 8 caracteres)
+#define AP_NAME "Reefer-Setup"         // Nombre del AP cuando no hay WiFi
+#define AP_PASSWORD "reefer1234"         // Password del AP (mínimo 8 caracteres)
 #define AP_TIMEOUT 180                 // Segundos antes de reiniciar si no se configura
 
 // ============================================
 // mDNS - Acceso por nombre en vez de IP
 // ============================================
-// Con esto configurado, podés acceder a: http://rift.local
+// Con esto configurado, podés acceder a: http://reefer.local
 // Funciona en la mayoría de dispositivos (iOS, macOS, Windows 10+, Linux con Avahi)
-#define MDNS_NAME "rift"               // Acceso via http://rift.local
+#define MDNS_NAME "reefer"             // Acceso via http://reefer.local
 
 // ============================================
-// DEVICE ID - Identificador único de este RIFT
+// DEVICE ID - Identificador único de este Reefer
 // ============================================
-#define DEVICE_ID "RIFT-01"            // Cambiar para cada RIFT: RIFT-01, RIFT-02, etc.
-#define DEVICE_NAME "RIFT Principal"   // Nombre descriptivo
+#define DEVICE_ID "REEFER-01"          // Cambiar para cada Reefer: REEFER-01, REEFER-02, etc.
+#define DEVICE_NAME "Reefer Principal"   // Nombre descriptivo
 
 // ============================================
 // TELEGRAM (para alertas cuando hay internet)
@@ -48,8 +48,9 @@ const int TELEGRAM_CHAT_COUNT = 1;  // Cantidad de chat IDs activos
 // ============================================
 // SUPABASE (para historial en la nube)
 // ============================================
-#define SUPABASE_URL "https://tkgszodjnkqxwdfgcvbg.supabase.co"
-#define SUPABASE_ANON_KEY "TU_ANON_KEY_AQUI"  // Pasame la anon key de Supabase
+#define SUPABASE_URL "https://xhdeacnwdzvkivfjzard.supabase.co"
+#define SUPABASE_ANON_KEY "sb_publishable_JhTUv1X2LHMBVILUaysJ3g_Ho11zu-Q"
+#define SUPABASE_SYNC_INTERVAL_MS 5000  // Enviar datos cada 5 segundos
 
 // ============================================
 // PINES ESP32

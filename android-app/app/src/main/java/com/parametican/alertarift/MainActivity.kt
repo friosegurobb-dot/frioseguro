@@ -44,20 +44,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnLogout: Button
     private lateinit var alertBanner: LinearLayout
     private lateinit var simBadge: LinearLayout
-    private lateinit var riftsContainer: LinearLayout
+    private lateinit var reefersContainer: LinearLayout
 
     private val handler = Handler(Looper.getMainLooper())
     private var updateRunnable: Runnable? = null
     
-    // 6 RIFTs data
-    data class RiftInfo(val id: String, val name: String, var online: Boolean, var temp: Float, var alertActive: Boolean)
-    private val rifts = mutableListOf(
-        RiftInfo("RIFT-01", "RIFT Principal", true, -22.5f, false),
-        RiftInfo("RIFT-02", "RIFT Carnes", false, -20.0f, false),
-        RiftInfo("RIFT-03", "RIFT Lácteos", false, -18.5f, false),
-        RiftInfo("RIFT-04", "RIFT Verduras", false, -15.0f, false),
-        RiftInfo("RIFT-05", "RIFT Bebidas", false, -5.0f, false),
-        RiftInfo("RIFT-06", "RIFT Backup", false, -25.0f, false)
+    // 6 Reefers data
+    data class ReeferInfo(val id: String, val name: String, var online: Boolean, var temp: Float, var alertActive: Boolean)
+    private val reefers = mutableListOf(
+        ReeferInfo("REEFER-01", "Reefer Principal", true, -22.5f, false),
+        ReeferInfo("REEFER-02", "Reefer Carnes", false, -20.0f, false),
+        ReeferInfo("REEFER-03", "Reefer Lácteos", false, -18.5f, false),
+        ReeferInfo("REEFER-04", "Reefer Verduras", false, -15.0f, false),
+        ReeferInfo("REEFER-05", "Reefer Bebidas", false, -5.0f, false),
+        ReeferInfo("REEFER-06", "Reefer Backup", false, -25.0f, false)
     )
 
     private val dataReceiver = object : BroadcastReceiver() {
@@ -114,10 +114,10 @@ class MainActivity : AppCompatActivity() {
         btnSilence = findViewById(R.id.btnSilence)
         btnLogout = findViewById(R.id.btnLogout)
         simBadge = findViewById(R.id.simBadge)
-        riftsContainer = findViewById(R.id.riftsContainer)
+        reefersContainer = findViewById(R.id.reefersContainer)
         
-        // Populate RIFTs list
-        populateRifts()
+        // Populate Reefers list
+        populateReefers()
         alertBanner = findViewById(R.id.alertBanner)
     }
 
@@ -179,8 +179,8 @@ class MainActivity : AppCompatActivity() {
         }
         
         // Services buttons
-        findViewById<Button>(R.id.btnServiceMultiRift).setOnClickListener {
-            showServiceInfo("Multi-RIFT", "Conecta hasta 10 unidades RIFT a un solo panel de control.\n\nIdeal para:\n• Múltiples cámaras frigoríficas\n• Diferentes ubicaciones\n• Control centralizado\n\nPrecio: Consultar")
+        findViewById<Button>(R.id.btnServiceMultiReefer).setOnClickListener {
+            showServiceInfo("Multi-Reefer", "Conecta hasta 10 unidades Reefer a un solo panel de control.\n\nIdeal para:\n• Múltiples cámaras frigoríficas\n• Diferentes ubicaciones\n• Control centralizado\n\nPrecio: Consultar")
         }
         
         findViewById<Button>(R.id.btnServiceCloud).setOnClickListener {
@@ -199,6 +199,115 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnStarlinkInfo).setOnClickListener {
             showStarlinkInfo()
         }
+        
+        // Modo Descongelamiento
+        findViewById<Button>(R.id.btnDefrost).setOnClickListener {
+            showDefrostDialog()
+        }
+        
+        // Cambiar modo conexión
+        findViewById<Button>(R.id.btnChangeMode).setOnClickListener {
+            changeConnectionMode()
+        }
+    }
+    
+    private fun showDefrostDialog() {
+        val options = arrayOf("1 hora", "2 horas", "4 horas", "8 horas", "Hasta que lo reactive")
+        val hours = arrayOf(1, 2, 4, 8, 0)
+        
+        AlertDialog.Builder(this, R.style.Theme_AlertaRift_Dialog)
+            .setTitle("🧊 Modo Descongelamiento")
+            .setMessage("Las alertas se desactivarán temporalmente.\n¿Por cuánto tiempo?")
+            .setItems(options) { _, which ->
+                val selectedHours = hours[which]
+                activateDefrostMode(selectedHours)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+    
+    private fun activateDefrostMode(hours: Int) {
+        val ip = etServerIp.text.toString().trim()
+        val prefs = getSharedPreferences("frioseguro", MODE_PRIVATE)
+        val mode = prefs.getString("connection_mode", "local")
+        
+        thread {
+            try {
+                if (mode == "internet") {
+                    // Enviar a Supabase
+                    val supabaseUrl = prefs.getString("supabase_url", ModeSelectActivity.SUPABASE_URL)
+                    val supabaseKey = prefs.getString("supabase_key", ModeSelectActivity.SUPABASE_KEY)
+                    val deviceId = "REEFER-01"
+                    
+                    val url = URL("$supabaseUrl/rest/v1/devices?device_id=eq.$deviceId")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "PATCH"
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.setRequestProperty("apikey", supabaseKey)
+                    conn.setRequestProperty("Authorization", "Bearer $supabaseKey")
+                    conn.doOutput = true
+                    
+                    val payload = if (hours == 0) {
+                        """{"alerts_disabled":true,"alerts_disabled_until":null,"alerts_disabled_reason":"Descongelamiento manual"}"""
+                    } else {
+                        """{"alerts_disabled":true,"alerts_disabled_reason":"Descongelamiento $hours horas"}"""
+                    }
+                    conn.outputStream.write(payload.toByteArray())
+                    conn.responseCode
+                    conn.disconnect()
+                } else {
+                    // Enviar al ESP32 local
+                    val url = URL("http://$ip/api/config")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    conn.connectTimeout = 5000
+                    
+                    val payload = """{"alerts_disabled":true,"defrost_hours":$hours}"""
+                    conn.outputStream.write(payload.toByteArray())
+                    conn.responseCode
+                    conn.disconnect()
+                }
+                
+                runOnUiThread {
+                    val msg = if (hours == 0) "Alertas desactivadas hasta que las reactives" else "Alertas desactivadas por $hours horas"
+                    Toast.makeText(this, "🧊 $msg", Toast.LENGTH_LONG).show()
+                    
+                    // Cambiar botón
+                    findViewById<Button>(R.id.btnDefrost).apply {
+                        text = "✅ DESCONGELAMIENTO ACTIVO"
+                        setBackgroundColor(Color.parseColor("#16a34a"))
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "❌ Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    private fun changeConnectionMode() {
+        AlertDialog.Builder(this, R.style.Theme_AlertaRift_Dialog)
+            .setTitle("🔄 Cambiar Modo")
+            .setMessage("¿Querés cambiar el modo de conexión?\n\nEsto te llevará a la pantalla de selección.")
+            .setPositiveButton("Sí, cambiar") { _, _ ->
+                // Limpiar preferencias de modo
+                getSharedPreferences("frioseguro", MODE_PRIVATE).edit()
+                    .putBoolean("mode_selected", false)
+                    .putBoolean("logged_in", false)
+                    .apply()
+                
+                // Detener servicio
+                stopService(Intent(this, MonitorService::class.java))
+                
+                // Ir a selector de modo
+                startActivity(Intent(this, ModeSelectActivity::class.java))
+                finish()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
     
     private fun showTelegramConfigDialog() {
@@ -278,7 +387,7 @@ class MainActivity : AppCompatActivity() {
                     "INCLUYE:\n" +
                     "• Kit Starlink (antena + router)\n" +
                     "• Instalación profesional\n" +
-                    "• Configuración del sistema RIFT\n" +
+                    "• Configuración del sistema Reefer\n" +
                     "• Soporte técnico dedicado\n\n" +
                     "BENEFICIOS:\n" +
                     "• Alertas en tiempo real desde cualquier lugar\n" +
@@ -367,19 +476,19 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
     
-    private fun populateRifts() {
-        riftsContainer.removeAllViews()
-        for (rift in rifts) {
-            val view = layoutInflater.inflate(R.layout.item_rift, riftsContainer, false)
+    private fun populateReefers() {
+        reefersContainer.removeAllViews()
+        for (reefer in reefers) {
+            val view = layoutInflater.inflate(R.layout.item_reefer, reefersContainer, false)
             
-            view.findViewById<TextView>(R.id.tvRiftName).text = rift.name
-            view.findViewById<TextView>(R.id.tvRiftId).text = rift.id
-            view.findViewById<TextView>(R.id.tvRiftTemp).text = String.format("%.1f°C", rift.temp)
+            view.findViewById<TextView>(R.id.tvReeferName).text = reefer.name
+            view.findViewById<TextView>(R.id.tvReeferId).text = reefer.id
+            view.findViewById<TextView>(R.id.tvReeferTemp).text = String.format("%.1f°C", reefer.temp)
             
-            val statusText = view.findViewById<TextView>(R.id.tvRiftStatus)
+            val statusText = view.findViewById<TextView>(R.id.tvReeferStatus)
             val statusIndicator = view.findViewById<View>(R.id.statusIndicator)
             
-            if (rift.online) {
+            if (reefer.online) {
                 statusText.text = "Online"
                 statusText.setTextColor(Color.parseColor("#22c55e"))
                 statusIndicator.setBackgroundResource(R.drawable.bg_status_online)
@@ -389,7 +498,7 @@ class MainActivity : AppCompatActivity() {
                 statusIndicator.setBackgroundResource(R.drawable.bg_status_offline)
             }
             
-            riftsContainer.addView(view)
+            reefersContainer.addView(view)
         }
     }
 
@@ -585,7 +694,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         LocalBroadcastManager.getInstance(this)
-            .registerReceiver(dataReceiver, IntentFilter("RIFT_DATA_UPDATE"))
+            .registerReceiver(dataReceiver, IntentFilter("REEFER_DATA_UPDATE"))
 
         if (MonitorService.isRunning) {
             updateUIState(true)

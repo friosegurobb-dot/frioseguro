@@ -34,7 +34,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="RIFT Monitor"
+                    android:text="Reefer Monitor"
                     android:textColor="#60a5fa"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -414,26 +414,49 @@
             android:textColor="#94a3b8"
             android:textSize="14sp"
             android:backgroundTint="#1e293b"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Modo Descongelamiento -->
+        <Button
+            android:id="@+id/btnDefrost"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="🧊 MODO DESCONGELAMIENTO"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:backgroundTint="#f59e0b"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Cambiar Modo Conexión -->
+        <Button
+            android:id="@+id/btnChangeMode"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="🔄 CAMBIAR MODO CONEXIÓN"
+            android:textColor="#94a3b8"
+            android:textSize="13sp"
+            android:backgroundTint="#334155"
             android:layout_marginBottom="12dp" />
 
-        <!-- 6 RIFTs Section -->
+        <!-- 6 Reefers Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📦 Todos los RIFTs"
+            android:text="📦 Todos los Reefers"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
         <LinearLayout
-            android:id="@+id/riftsContainer"
+            android:id="@+id/reefersContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginBottom="12dp">
 
-            <!-- RIFT items will be added programmatically -->
+            <!-- Reefer items will be added programmatically -->
 
         </LinearLayout>
 
@@ -511,18 +534,18 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Expande las capacidades de tu sistema RIFT"
+                android:text="Expande las capacidades de tu sistema Reefer"
                 android:textColor="#64748b"
                 android:textSize="12sp"
                 android:layout_marginTop="4dp" />
 
             <Button
-                android:id="@+id/btnServiceMultiRift"
+                android:id="@+id/btnServiceMultiReefer"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:layout_marginTop="12dp"
                 android:backgroundTint="#334155"
-                android:text="📦 Multi-RIFT (hasta 10 unidades)"
+                android:text="📦 Multi-Reefer (hasta 10 unidades)"
                 android:textColor="#94a3b8"
                 android:textSize="13sp" />
 
@@ -619,7 +642,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Con Starlink, tu sistema RIFT puede:\n\n• Enviar alertas desde cualquier lugar del mundo\n• Sincronizar datos en tiempo real a la nube\n• Acceso remoto desde cualquier dispositivo\n• Monitoreo 24/7 sin depender de redes locales"
+                android:text="Con Starlink, tu sistema Reefer puede:\n\n• Enviar alertas desde cualquier lugar del mundo\n• Sincronizar datos en tiempo real a la nube\n• Acceso remoto desde cualquier dispositivo\n• Monitoreo 24/7 sin depender de redes locales"
                 android:textColor="#94a3b8"
                 android:textSize="13sp"
                 android:lineSpacingExtra="4dp" />
