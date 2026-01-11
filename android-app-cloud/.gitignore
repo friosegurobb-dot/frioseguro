@@ -1,0 +1,19 @@
+# Build files
+/build
+/app/build
+*.apk
+*.aab
+*.dex
+*.class
+
+# Local configuration
+local.properties
+*.log
+
+# IDE
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
