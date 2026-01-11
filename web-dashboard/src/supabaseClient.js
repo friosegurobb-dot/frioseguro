@@ -1,6 +1,6 @@
 // Cliente Supabase usando fetch directo (sin SDK)
 const SUPABASE_URL = 'https://xhdeacnwdzvkivfjzard.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoZGVhY253ZHp2a2l2Zmp6YXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYwMTY0NzAsImV4cCI6MjA1MTU5MjQ3MH0.sG5Ki3Vfnp0xPE6UcqbsurPJrWlXOqXkGpCqrVtFz3M'
+const SUPABASE_KEY = 'sb_publishable_JhTUv1X2LHMBVILUaysJ3g_Ho11zu-Q'
 
 // Helper para hacer requests a Supabase REST API
 async function supabaseGet(endpoint) {
